@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Written by: https://gitlab.com/u/huuteml
 # Website: https://daulton.ca
-# Purpose: A rsync backup script to be ran scheduled by Cron. It supports logging and backing to both
-# network share and locally attached drives and can be set in a variety of combinations
+# Purpose: A rsync backup script to be ran scheduled by Cron. It supports logging and backing up to both
+# network share and locally attached storage which can be set in a variety of combinations
 #
 # Notice: This script assumes that the network share is already mounted. This is due to variety of different
 # types of network storage and the ways in which it can be mounted. A one size fits all solution may not
@@ -94,7 +94,7 @@ logLogic() {
 	fi
 }
 
-echo "rsync backup beginning at $todayDate.." >> /var/log/rsync_backup.log
+echo "rsync backup beginning at $todayDate" >> /var/log/rsync_backup.log
 
 if [[ $mountChoice == "1" ]]; then
 	mountpoint -q "$defaultMount" || mount "$backupDrive" "$defaultMount"
