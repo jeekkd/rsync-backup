@@ -21,7 +21,7 @@ sudo crontab -e
 
 - Next is creating the schedule the script will run at. [Use the following crontab generator to aid in that](http://crontab-generator.org/)
 
-* 19 * * * bash /home/<user name>/scripts/rsync_backup.sh
+    * 19 * * * bash /home/<user name>/scripts/rsync_backup.sh
 
 This means it will run everyday, of every week, of every month, at 7 pm and run the script at the given
 path through the BASH shell.
