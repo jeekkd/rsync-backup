@@ -25,7 +25,7 @@ backupDir=
 
 # Rsync to backup drive, network share, or both?
 # Enter 1 for backup drive, 2 for just network share, or 3 to use both
-mountChoice=
+mountChoice=3
 
 # Enter the source files and directories you wish to sync, remember if its a directory put a slash (/) at the end. Seperate
 # each entry with a space and then double quote each entry this way spaces wont effect anything and it makes it easier
@@ -56,42 +56,20 @@ rsyncFunction() {
 	done
 }
 
-# error_log()
-# Function to be used in logLogic(). Outputs error related information in the /var/log/backup_error.log
-# if logLogic() determines the backup was a failure
-error_log() {
-echo "$todayDate" >> /var/log/backup_error.log
-echo "mountChoice was: 	$mountChoice
-backupDrive was: 	$backupDrive
-backupShare was: 	$backupShare
-backupDir was: 		$backupDir
-The backup had an error occur with the exit code of $exitCode" >> /var/log/rsync_backup.log
-}
-
-# success_log()
-# Function to be used in logLogic(). Outputs success related information in the /var/log/backup_success.log
-# if logLogic() determines the backup was a success
-success_log() {
-echo "$todayDate" >> /var/log/backup_success.log
-echo "mountChoice was: 	$mountChoice
-backupDrive was: 	$backupDrive
-backupShare was: 	$backupShare
-backupDir was: 		$backupDir
-The backup was successful and completed without error" >> /var/log/rsync_backup.log
-}
-
-# logLogic()
-# To be failed after the final call of rsyncFunction() in the mountChoice logic to determine based on
-# exit code if the backup was a success or failure then calls the appropriate function for either a 
-# success or a failure
-logLogic() {
-	if [ $? -eq 0 ]; then
-		success_log
-	fi
-	if [ $? -gt 0 ]; then
-		exitCode=$?
-		error_log
-	fi
+# makeLog()
+# Function to output log related information in the /var/log/rsync_backup.log
+makeLog() {
+echo "mountChoice was: 		$mountChoice
+backupDrive was: 			$backupDrive
+Drive backup exit code:		$exitCodeDisk
+backupShare was: 			$backupShare
+Share backup exit code:		$exitCodeShare
+backupDir was: 				$backupDir" >> /var/log/rsync_backup.log
+if [[ $exitCodeDisk == "0" ]]; then
+	echo "The backup was successful and completed without error" >> /var/log/rsync_backup.log
+else
+	echo "Warning: The backup had an error occur" >> /var/log/rsync_backup.log
+fi
 }
 
 echo "rsync backup beginning at $todayDate" >> /var/log/rsync_backup.log
@@ -100,23 +78,27 @@ if [[ $mountChoice == "1" ]]; then
 	mountpoint -q "$defaultMount" || mount "$backupDrive" "$defaultMount"
 	if [ $? -eq 0 ]; then
 		rsyncFunction
-		logLogic
+		makeLog
+		exitCodeDisk=$?
 	fi
 elif [[ $mountChoice == "2" ]]; then
 	backupDir="$backupShare"
 	rsyncFunction
-	logLogic
+	makeLog
+	exitCodeShare=$?
 elif [[ $mountChoice == "3" ]]; then
 	mountpoint -q "$defaultMount" || mount "$backupDrive" "$defaultMount"
 	if [ $? -eq 0 ]; then
 		rsyncFunction
+		exitCodeDisk=$?
 		if [ $? -eq 0 ]; then
 			backupDir="$backupShare"
 			rsyncFunction
-			logLogic
+			exitCodeShare=$?
+			makeLog
 		fi	
 	fi
 else
-	error_log
+	echo "Warning: An error occured. This is perhaps an issue with mountChoice being an invalid option" >> /var/log/rsync_backup.log
 	exit 1
 fi
