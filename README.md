@@ -51,31 +51,45 @@ Setting the variables
 
 Specify backup directory on the network share. Ex: /media/nfs_backup/fileBackups
 
-    backupShare=/media/<Enter share here>/important_files/
+```
+backupShare=/media/<Enter share here>/important_files/
+```
 
 Mount path of the drive to backup to. Ex. /mnt/tmp
 
-    defaultMount=/media/<Drive mount path>
+```
+defaultMount=/media/<Drive mount path>
+```
 
 Specify backup drive. Ex: /dev/sdb3
 
-    backupDrive=/dev/sdc1
+```
+backupDrive=/dev/sdc1
+```
 
 Backup directory on the backup drive. Ex "$defaultMount"/important_files
 Its suggested to follow the example and use the "$defaultMount" variable, and to just add your backup
 directorys name and path afterward like shown
 
-    backupDir="$defaultMount"/<backup directory>
+```
+backupDir="$defaultMount"/<backup directory>
+```
 
 Rsync to backup drive, network share, or both?
 Enter 1 for backup drive, 2 for just network share, or 3 to use both
-    mountChoice=<Enter your choice>
+
+```
+mountChoice=<Enter your choice>
+```
 
 Do you want to synchronize your network share to your hardware? Y/N
 This option is available because the local drive is likely to be backed up to regularly while
 the computer may not always be connected to the network share. So this way backups can be kept in
 sync so to save redoing or cleaning.
-    syncBackups=Y
+
+```
+syncBackups=Y
+```
 
 Make sure to double quote each entry and then space it. Directories should end in a forward slash (/). So it will look like so:
 
