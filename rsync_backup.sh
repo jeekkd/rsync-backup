@@ -24,8 +24,15 @@ backupDrive=
 backupDir=
 
 # Rsync to backup drive, network share, or both?
-# Enter 1 for backup drive, 2 for just network share, or 3 to use both
-mountChoice=3
+# Enter 1 for backup drive, 2 for just network share, or 3 to use both. Entering anything else will
+# result in an error and the script exiting.
+mountChoice=
+
+# Do you want to synchronize your network share to your local backup drive? Y/N
+# This option is available because the local drive is likely to be backed up to regularly while
+# the device may not always be connected to the network share. So this way backups can be kept in
+# sync so to save redoing or cleaning.
+syncBackups=
 
 # Enter the source files and directories you wish to sync, remember if its a directory put a slash (/) at the end. Seperate
 # each entry with a space and then double quote each entry this way spaces wont effect anything and it makes it easier
@@ -52,7 +59,7 @@ rsyncFunction() {
 	adjustedLength=$(( sourceArrayLength - 1 ))
 
 	for i in $( eval echo {0..$adjustedLength} ); do
-		rsync --log-file=/var/log/rsync_backup.log -urq $(printf '%q\n' "${sourceArray[$i]}") $(printf '%q\n' "${destinationArray[$i]}")
+		rsync --log-file=/var/log/rsync_backup.log -urqz --delete $(printf '%q\n' "${sourceArray[$i]}") $(printf '%q\n' "${destinationArray[$i]}")
 	done
 }
 
@@ -60,19 +67,34 @@ rsyncFunction() {
 # Function to output log related information in the /var/log/rsync_backup.log
 makeLog() {
 echo "mountChoice was: 		$mountChoice
-backupDrive was: 			$backupDrive
+backupDrive was: 		$backupDrive
 Drive backup exit code:		$exitCodeDisk
-backupShare was: 			$backupShare
+backupShare was: 		$backupShare
 Share backup exit code:		$exitCodeShare
-backupDir was: 				$backupDir" >> /var/log/rsync_backup.log
+backupDir was: 			$backupDir" >> /var/log/rsync_backup.log
+
+if [[ $syncBackups == "Y" ]] || [[ $syncBackups == "y" ]]; then
+	echo "syncBackups was selected as $syncBackups - Sync was from $origBackupDir to $backupShare" >> /var/log/rsync_backup.log	
+	if [[ $exitCodeSync == "0" ]]; then
+		echo "The sync was successful - exit code was $exitCodeSync" >> /var/log/rsync_backup.log
+	else
+		echo "Warning: The sync had an error occur with the exit code of $exitCodeSync" >> /var/log/rsync_backup.log
+	fi
+fi
+
 if [[ $exitCodeDisk == "0" ]]; then
-	echo "The backup was successful and completed without error" >> /var/log/rsync_backup.log
+	echo "The The backup to $backupDrive mounted at $defaultMount was successful and completed without error" >> /var/log/rsync_backup.log
 else
-	echo "Warning: The backup had an error occur" >> /var/log/rsync_backup.log
+	echo "Warning: The backup to $backupDrive mounted at $defaultMount had an error occur with an exit code greater then 0." >> /var/log/rsync_backup.log
 fi
 }
 
 echo "rsync backup beginning at $todayDate" >> /var/log/rsync_backup.log
+
+if [ $mountChoice -lt 1 ] || [ $mountChoice -gt 3 ] ; then
+	echo "Error: exiting due to out of range mountChoice - please enter 1 to 3" >> /var/log/rsync_backup.log
+	exit 1
+fi
 
 if [[ $mountChoice == "1" ]]; then
 	mountpoint -q "$defaultMount" || mount "$backupDrive" "$defaultMount"
@@ -91,14 +113,16 @@ elif [[ $mountChoice == "3" ]]; then
 	if [ $? -eq 0 ]; then
 		rsyncFunction
 		exitCodeDisk=$?
-		if [ $? -eq 0 ]; then
+		if [ $exitCodeDisk -eq 0 ]; then
+			origBackupDir="$backupDir"
 			backupDir="$backupShare"
 			rsyncFunction
 			exitCodeShare=$?
+			if [[ $syncBackups == "Y" ]] || [[ $syncBackups == "y" ]]; then
+				rsync -qarzu "$origBackupDir" "$backupShare"
+				exitCodeSync=$?
+			fi
 			makeLog
 		fi	
 	fi
-else
-	echo "Warning: An error occured. This is perhaps an issue with mountChoice being an invalid option" >> /var/log/rsync_backup.log
-	exit 1
 fi

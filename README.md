@@ -7,6 +7,12 @@ network share and locally attached storage which can be set in a variety of comb
 How to use
 ===
 
+- Lets get the source
+
+```
+git clone https://gitlab.com/huuteml/rsync_backup.git && cd rsync_backup
+```
+
 - This will make the script readable, writable, and executable to root and your user. 
 
 ```
