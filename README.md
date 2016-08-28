@@ -134,7 +134,7 @@ Drive backup exit code:	0
 backupShare was:        /media/<Your network share>/<Your backup directory>
 Share backup exit code: 0
 backupDir was:          /media/<Your backup drive>/<Your backup directory>
-syncBackups was selected as Y - Sync was from <Your backup directory> to <Your network share>
+syncBackups was selected as Y - Sync was from /media/data/important_files/ to /media/daultons_nfs/important_files/
 The sync was successful - exit code was 0
 The backup was successful and completed without error
 
