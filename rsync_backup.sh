@@ -12,16 +12,17 @@
 # Specify backup directory on the network share. Ex: /media/nfs_backup/fileBackups
 backupShare=
 
-# Mount path of the drive to backup to. Ex. /mnt/tmp
+# Mount path of the drive to backup to. Ex. /mnt/backups
 defaultMount=
 
-# Specify backup drive. Ex: /dev/sdb3
+# Specify backup drive Ex: /dev/sdb3
+# This will be used for mounting the specified drive if is not already mounted at the above directory
 backupDrive=
 
 # Backup directory on the backup drive. Ex "$defaultMount"/important_files
 # Its suggested to follow the example and use the "$defaultMount" variable, and to just add your backup
 # directorys name and path afterward like shown
-backupDir=
+backupDir="$defaultMount"/
 
 # Rsync to backup drive, network share, or both?
 # Enter 1 for backup drive, 2 for just network share, or 3 to use both. Entering anything else will
@@ -59,7 +60,7 @@ rsyncFunction() {
 	adjustedLength=$(( sourceArrayLength - 1 ))
 
 	for i in $( eval echo {0..$adjustedLength} ); do
-		rsync --log-file=/var/log/rsync_backup.log -urqz --delete $(printf '%q\n' "${sourceArray[$i]}") $(printf '%q\n' "${destinationArray[$i]}")
+		rsync --log-file=/var/log/rsync_backup.log -urqz $(printf '%q\n' "${sourceArray[$i]}") $(printf '%q\n' "${destinationArray[$i]}")
 	done
 }
 
@@ -70,8 +71,13 @@ echo "mountChoice was: 		$mountChoice
 backupDrive was: 		$backupDrive
 Drive backup exit code:		$exitCodeDisk
 backupShare was: 		$backupShare
-Share backup exit code:		$exitCodeShare
-backupDir was: 			$backupDir" >> /var/log/rsync_backup.log
+Share backup exit code:		$exitCodeShare" >> /var/log/rsync_backup.log
+
+if [[ $mountChoice == "3" ]]; then
+	echo "backupDir was: 			$origBackupDir" >> /var/log/rsync_backup.log
+else
+	echo "backupDir was: 			$backupDir" >> /var/log/rsync_backup.log
+fi
 
 if [[ $syncBackups == "Y" ]] || [[ $syncBackups == "y" ]]; then
 	echo "syncBackups was selected as $syncBackups - Sync was from $origBackupDir to $backupShare" >> /var/log/rsync_backup.log	
@@ -83,7 +89,7 @@ if [[ $syncBackups == "Y" ]] || [[ $syncBackups == "y" ]]; then
 fi
 
 if [[ $exitCodeDisk == "0" ]]; then
-	echo "The The backup to $backupDrive mounted at $defaultMount was successful and completed without error" >> /var/log/rsync_backup.log
+	echo "The backup to $backupDrive mounted at $defaultMount was successful and completed without error" >> /var/log/rsync_backup.log
 else
 	echo "Warning: The backup to $backupDrive mounted at $defaultMount had an error occur with an exit code greater then 0." >> /var/log/rsync_backup.log
 fi
