@@ -35,18 +35,20 @@ mountChoice=
 # sync so to save redoing or cleaning.
 syncBackups=
 
-# Enter the source files and directories you wish to sync, remember if its a directory put a slash (/) at the end. Seperate
-# each entry with a space and then double quote each entry this way spaces wont effect anything and it makes it easier
-# to see where one entry stops and another starts.
+# Enter the source files and directories you wish to sync, remember if its a directory put a slash (/) at 
+# the end. Seperate each entry with a space and then double quote each entry. 
+#
 # Example:
-# sourceArray=("/home/<user name>/School_work/" "/home/<user name>/scripts/")
+# sourceArray=("/home/<user name>/Important_files/" "/home/<user name>/scripts/" "/home/<user name>/School_work/")
 sourceArray=("")
 
-# Enter the destination directory for the corressponding entry to the source array. So for the first entry that
-# Will be the destination where the first entry of sourceArray will be stored to. The same spacing and double
-# quoting mentioned above still applies.
+# Enter the destination directory for the corressponding entry to the source array. So for the first entry 
+# that will be the destination where the first entry of sourceArray will be stored to. The same spacing and 
+# double quoting mentioned above still applies.
 # Example:
-# destinationArray=("$backupDir/School" "$backupDir/MyScripts/")
+# destinationArray=("/" "/MyScripts/" "/School_work")
+# This would mean that the first entry should be copied into the root of backupDir and/or backupShare. The
+# second entry will go to a folder in the root of the destination called MyScripts.
 destinationArray=("")
 #############################
 
@@ -60,39 +62,59 @@ rsyncFunction() {
 	adjustedLength=$(( sourceArrayLength - 1 ))
 
 	for i in $( eval echo {0..$adjustedLength} ); do
-		rsync --log-file=/var/log/rsync_backup.log -urqz $(printf '%q\n' "${sourceArray[$i]}") $(printf '%q\n' "${destinationArray[$i]}")
+		rsync --log-file=/var/log/rsync_backup.log -urqz $(printf '%q\n' "${sourceArray[$i]}") $(printf '%q\n' "$backupDir""${destinationArray[$i]}")
 	done
 }
 
 # makeLog()
 # Function to output log related information in the /var/log/rsync_backup.log
 makeLog() {
-echo "mountChoice was: 		$mountChoice
-backupDrive was: 		$backupDrive
-Drive backup exit code:		$exitCodeDisk
-backupShare was: 		$backupShare
-Share backup exit code:		$exitCodeShare" >> /var/log/rsync_backup.log
-
-if [[ $mountChoice == "3" ]]; then
-	echo "backupDir was: 			$origBackupDir" >> /var/log/rsync_backup.log
-else
-	echo "backupDir was: 			$backupDir" >> /var/log/rsync_backup.log
-fi
-
-if [[ $syncBackups == "Y" ]] || [[ $syncBackups == "y" ]]; then
-	echo "syncBackups was selected as $syncBackups - Sync was from $origBackupDir to $backupShare" >> /var/log/rsync_backup.log	
-	if [[ $exitCodeSync == "0" ]]; then
-		echo "The sync was successful - exit code was $exitCodeSync" >> /var/log/rsync_backup.log
-	else
-		echo "Warning: The sync had an error occur with the exit code of $exitCodeSync" >> /var/log/rsync_backup.log
+	if [[ $mountChoice == "1" ]]; then
+		exitCodeShare=NA
+		backupShare=NA
 	fi
-fi
 
-if [[ $exitCodeDisk == "0" ]]; then
-	echo "The backup to $backupDrive mounted at $defaultMount was successful and completed without error" >> /var/log/rsync_backup.log
-else
-	echo "Warning: The backup to $backupDrive mounted at $defaultMount had an error occur with an exit code greater then 0." >> /var/log/rsync_backup.log
-fi
+	if [[ $mountChoice == "2" ]]; then
+		exitCodeDisk=NA
+		backupDrive=NA
+	fi
+		
+	echo "mountChoice was: 		$mountChoice" >> /var/log/rsync_backup.log
+	echo "backupDrive was: 		$backupDrive" >> /var/log/rsync_backup.log
+	echo "Drive backup exit code:		$exitCodeDisk" >> /var/log/rsync_backup.log
+	echo "backupShare was: 		$backupShare" >> /var/log/rsync_backup.log
+	echo "Share backup exit code:		$exitCodeShare" >> /var/log/rsync_backup.log
+
+	if [[ $mountChoice == "3" ]]; then
+		echo "backupDir was: 			$origBackupDir" >> /var/log/rsync_backup.log
+	else
+		echo "backupDir was: 			$backupDir" >> /var/log/rsync_backup.log
+	fi
+
+	if [[ $syncBackups == "Y" ]] || [[ $syncBackups == "y" ]]; then
+		echo "syncBackups was selected as $syncBackups - Sync was from $origBackupDir to $backupShare" >> /var/log/rsync_backup.log	
+		if [[ $exitCodeSync == "0" ]]; then
+			echo "The sync was successful - exit code was $exitCodeSync" >> /var/log/rsync_backup.log
+		else
+			echo "Warning: The sync had an error occur with the exit code of $exitCodeSync" >> /var/log/rsync_backup.log
+		fi
+	fi
+
+	if [[ $exitCodeShare == "0" ]]; then
+		echo "The backup to $backupShare was successful and completed without error" >> /var/log/rsync_backup.log
+	elif [[ $exitCodeShare == "NA" && $mountChoice == "1" ]]; then
+		echo "Note: Backing up to only local hard disk since mountChoice is 1" >> /var/log/rsync_backup.log
+	else
+		echo "Warning: The backup to $backupShare had an error occur with a non-zero exit code." >> /var/log/rsync_backup.log
+	fi
+
+	if [[ $exitCodeDisk == "0" ]]; then
+		echo "The backup to $backupDrive mounted at $defaultMount was successful and completed without error" >> /var/log/rsync_backup.log
+	elif [[ $exitCodeDisk == "NA" && $mountChoice == "2" ]]; then
+		echo "Note: Backing up to only network share since mountChoice is 2" >> /var/log/rsync_backup.log
+	else
+		echo "Warning: The backup to $backupDrive mounted at $defaultMount had an error occur with a non-zero exit code." >> /var/log/rsync_backup.log
+	fi
 }
 
 echo "rsync backup beginning at $todayDate" >> /var/log/rsync_backup.log
@@ -106,14 +128,14 @@ if [[ $mountChoice == "1" ]]; then
 	mountpoint -q "$defaultMount" || mount "$backupDrive" "$defaultMount"
 	if [ $? -eq 0 ]; then
 		rsyncFunction
-		makeLog
 		exitCodeDisk=$?
+		makeLog
 	fi
 elif [[ $mountChoice == "2" ]]; then
 	backupDir="$backupShare"
 	rsyncFunction
-	makeLog
 	exitCodeShare=$?
+	makeLog
 elif [[ $mountChoice == "3" ]]; then
 	mountpoint -q "$defaultMount" || mount "$backupDrive" "$defaultMount"
 	if [ $? -eq 0 ]; then
