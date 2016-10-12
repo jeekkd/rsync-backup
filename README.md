@@ -1,7 +1,7 @@
 Purpose
 ===
 
-A rsync backup script to be ran scheduled by Cron. It supports logging and backing up to both
+A rsync backup script to be ran scheduled by cron. It supports logging and backing up to both
 network share and locally attached storage which can be set in a variety of combinations
 
 How to use
@@ -50,7 +50,7 @@ path through the BASH shell.
 >
 > Then verify by:
 >
-> id root
+> groups root
 
 Setting the variables
 ===
@@ -58,7 +58,7 @@ Setting the variables
 Specify backup directory on the network share. Ex: /media/nfs_backup/fileBackups
 
 ```
-backupShare=/media/<Enter share here>/important_files/
+backupShare=/media/<Enter share here>
 ```
 
 Mount path of the drive to backup to. Ex. /mnt/tmp
@@ -118,24 +118,24 @@ Log file example
 ===
 
 ```
-rsync backup beginning at Thu Aug  4 13:32:01 CDT 2016
-2016/08/04 13:32:01 [21176] building file list
-2016/08/04 13:32:01 [21176] >f..T...... MyScripts/rsync_backup.sh
-2016/08/04 13:32:01 [21176] sent 99256 bytes  received 1000 bytes  total size 4310030400
-2016/08/04 13:32:01 [21181] building file list
-2016/08/04 13:32:01 [21181] sent 212 bytes  received 17 bytes  total size 2599691
-2016/08/04 13:32:01 [21187] building file list
-2016/08/04 13:32:01 [21187] sent 97346 bytes  received 975 bytes  total size 4310030400
-2016/08/04 13:32:01 [21192] building file list
-2016/08/04 13:32:01 [21192] sent 212 bytes  received 17 bytes  total size 2599691
-mountChoice was: 		3
-backupDrive was: 		/dev/sdc1
-Drive backup exit code:	0
-backupShare was:        /media/<Your network share>/<Your backup directory>
-Share backup exit code: 0
-backupDir was:          /media/<Your backup drive>/<Your backup directory>
-syncBackups was selected as Y - Sync was from /media/data/important_files/ to /media/daultons_nfs/important_files/
-The sync was successful - exit code was 0
-The backup was successful and completed without error
+rsync backup beginning at Tue Oct 11 22:43:37 CDT 2016
+2016/10/11 22:43:37 [4451] building file list
+2016/10/11 22:44:03 [4451] >f.sT...... Scripts/rsync_backup.sh
+2016/10/11 22:44:03 [4451] >f+++++++++ Scripts/syncDrives.sh
+2016/10/11 22:44:03 [4451] sent 346090267 bytes  received 5476 bytes  total size 4758013455
+Backup to network share beginning
+2016/10/11 22:44:03 [4457] building file list
+2016/10/11 22:44:33 [4457] >f.sT...... Scripts/rsync_backup.sh
+2016/10/11 22:44:33 [4457] >f+++++++++ Scripts/syncDrives.sh
+2016/10/11 22:44:33 [4457] sent 346090267 bytes  received 5476 bytes  total size 4758013455
+Backup completed at:		Tue Oct 11 22:44:33 CDT 2016
+mountChoice was: 			3
+backupDrive was: 		    /dev/sdb1
+Drive backup exit code:		0
+backupShare was: 		 	/media/<Your network share>/<Your backup directory>
+Share backup exit code:		0
+backupDir was: 				/media/<Your backup drive>/<Your backup directory>
+The backup to /media/<Your network share>/<Your backup directory> was successful and completed without error
+The backup to /dev/sdb1 mounted at /media/data was successful and completed without error
 
 ```
