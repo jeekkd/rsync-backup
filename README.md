@@ -10,7 +10,7 @@ How to use
 - Lets get the source
 
 ```
-git clone https://gitlab.com/huuteml/rsync_backup.git && cd rsync_backup
+git clone https://github.com/jeekkd/rsync-backup.git && cd rsync-backup
 ```
 
 - This will make the script readable, writable, and executable to root and your user. 
