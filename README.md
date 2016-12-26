@@ -1,8 +1,8 @@
 Purpose
 ===
 
-A rsync backup script to be ran scheduled by cron. It supports logging and backing up to both
-network share and locally attached storage which can be set in a variety of combinations
+A rsync backup script to be ran scheduled by cron. It supports logging, desktop notifications, and
+backups up to both a network share and locally attached storage which can be set in a variety of combinations.
 
 Required packages
 ===
