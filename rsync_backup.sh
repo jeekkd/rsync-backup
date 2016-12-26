@@ -11,31 +11,31 @@
 #
 ######### VARIABLES #########
 # Specify backup directory on the network share. Ex: /media/nfs_backup/fileBackups
-backupShare=/media/daultons_nfs/important_files
+backupShare=
 
 # Mount path of the drive to backup to. Ex. /mnt/backups
-defaultMount=/media/data
+defaultMount=
 
 # Specify backup drive Ex: /dev/sdb3
 # This will be used for mounting the specified drive if is not already mounted at the above directory
-backupDrive=/dev/sdb1
+backupDrive=
 
 # Backup directory on the backup drive. Ex "$defaultMount"/important_files
 # Its suggested to follow the example and use the "$defaultMount" variable, and to just add your backup
 # directorys name and path afterward like shown
-backupDir="$defaultMount"/important_files
+backupDir="$defaultMount"/
 
 # Rsync to backup drive, network share, or both?
 # Enter 1 for backup drive, 2 for just network share, or 3 to use both. Entering anything else will
 # result in an error and the script exiting.
-mountChoice=1
+mountChoice=
 
 # Enter the source files and directories you wish to sync, remember if its a directory put a slash (/) at 
 # the end. Seperate each entry with a space and then double quote each entry. 
 #
 # Example:
 # sourceArray=("/home/<user name>/Important_files/" "/home/<user name>/scripts/" "/home/<user name>/School_work/")
-sourceArray=("/home/daulton/important_files/")
+sourceArray=("")
 
 # Enter the destination directory for the corressponding entry to the source array. So for the first entry 
 # that will be the destination where the first entry of sourceArray will be stored to. The same spacing and 
@@ -44,10 +44,45 @@ sourceArray=("/home/daulton/important_files/")
 # destinationArray=("/" "/MyScripts/" "/School_work")
 # This would mean that the first entry should be copied into the root of backupDir and/or backupShare. The
 # second entry will go to a folder in the root of the destination called MyScripts.
-destinationArray=("/")
+destinationArray=("")
+
+# Enable notifications via libnotify? Y/N
+notificationsEnabled=
+
+# Enter the username of the user to send notifications to
+notificationsTo=
+
 #############################
 
 todayDate=$(date)
+
+# notifyStart()
+# Backups starting notification function
+# When used it will only preform its function if notificationsEnabled is set to Y
+notifyStart() {
+	if [[ $notificationsEnabled == "Y" || $notificationsEnabled == "y" ]]; then
+		sudo -u "$notificationsTo" notify-send "rsync-backup" "Your backup has started"
+	fi
+}
+
+# notifyEnd()
+# Backups starting notification function
+# When used it will only preform its function if notificationsEnabled is set to Y
+notifyEnd() {
+	if [[ $notificationsEnabled == "Y" || $notificationsEnabled == "y" ]]; then		
+		
+		if [[ $mountChoice == "1" && $exitCodeDisk == "0" ]]; then
+			sudo -u "$notificationsTo" notify-send "rsync-backup" "Your backup to a local disk has successfully completed."
+		elif [[ $mountChoice == "2" && $exitCodeShare == "0" ]]; then
+			sudo -u "$notificationsTo" notify-send "rsync-backup" "Your backup to a network share has successfully completed."
+		elif [[ $mountChoice == "3"  && $exitCodeShare == "0" && $exitCodeDisk == "0" ]]; then
+			sudo -u "$notificationsTo" notify-send "rsync-backup" "Your backup to a local disk and network share has successfully completed."
+		else
+			sudo -u "$notificationsTo" notify-send "rsync-backup" "Your backup has had an error occur, please check /var/log/rsync_backup.log"
+		fi
+		
+	fi
+}
 
 # rsyncFunction()
 # Put rsync portion in a function due to being called multiple times through out the 
@@ -116,18 +151,19 @@ if [ $mountChoice -lt 1 ] || [ $mountChoice -gt 3 ] ; then
 	exit 1
 fi
 
+# Notify that backups have began
+notifyStart
+
 if [[ $mountChoice == "1" ]]; then
 	mountpoint -q "$defaultMount" || mount "$backupDrive" "$defaultMount"
 	if [ $? -eq 0 ]; then
 		rsyncFunction
 		exitCodeDisk=$?
-		makeLog
 	fi
 elif [[ $mountChoice == "2" ]]; then
 	backupDir="$backupShare"
 	rsyncFunction
 	exitCodeShare=$?
-	makeLog
 elif [[ $mountChoice == "3" ]]; then
 	mountpoint -q "$defaultMount" || mount "$backupDrive" "$defaultMount"
 	if [ $? -eq 0 ]; then
@@ -139,7 +175,12 @@ elif [[ $mountChoice == "3" ]]; then
 			echo "Backup to network share beginning" >> /var/log/rsync_backup.log
 			rsyncFunction
 			exitCodeShare=$?
-			makeLog
 		fi	
 	fi
 fi
+
+# Append new data to the logfile
+makeLog
+
+# Notify backups have completed
+notifyEnd

@@ -4,6 +4,16 @@ Purpose
 A rsync backup script to be ran scheduled by cron. It supports logging and backing up to both
 network share and locally attached storage which can be set in a variety of combinations
 
+Required packages
+===
+
+Base requirement:
+- rsync
+
+If desktop notifications are enabled (optional feature):
+- libnotify
+- sudo
+
 How to use
 ===
 
@@ -70,7 +80,7 @@ defaultMount=/media/<Drive mount path>
 Specify backup drive. Ex: /dev/sdb3
 
 ```
-backupDrive=/dev/sdc1
+backupDrive=/dev/<Your backup drive here>
 ```
 
 Backup directory on the backup drive. Ex "$defaultMount"/important_files
@@ -94,7 +104,7 @@ the computer may not always be connected to the network share. So this way backu
 sync so to save redoing or cleaning.
 
 ```
-syncBackups=Y
+syncBackups=<Enter your choice>
 ```
 
 Make sure to double quote each entry and then space it. Directories should end in a forward slash (/). So it will look like so:
@@ -113,29 +123,41 @@ The reason it is done this way in an intentional design decision to enable you t
 directories to backup with ease. This is an easy way to implement that without making it a pain for the user
 to use.
 
+Enable notifications via libnotify? Y/N
+```
+notificationsEnabled=<Enter your choice>
+```
+
+Enter the username of the user to send notifications to
+```
+notificationsTo=<Your username here if notificationsEnabled is set to Y>
+```
 
 Log file example
 ===
 
 ```
 rsync backup beginning at Tue Oct 11 22:43:37 CDT 2016
-2016/10/11 22:43:37 [4451] building file list
-2016/10/11 22:44:03 [4451] >f.sT...... Scripts/rsync_backup.sh
-2016/10/11 22:44:03 [4451] >f+++++++++ Scripts/syncDrives.sh
-2016/10/11 22:44:03 [4451] sent 346090267 bytes  received 5476 bytes  total size 4758013455
-Backup to network share beginning
-2016/10/11 22:44:03 [4457] building file list
-2016/10/11 22:44:33 [4457] >f.sT...... Scripts/rsync_backup.sh
-2016/10/11 22:44:33 [4457] >f+++++++++ Scripts/syncDrives.sh
-2016/10/11 22:44:33 [4457] sent 346090267 bytes  received 5476 bytes  total size 4758013455
-Backup completed at:		Tue Oct 11 22:44:33 CDT 2016
-mountChoice was: 			3
-backupDrive was: 		    /dev/sdb1
-Drive backup exit code:		0
-backupShare was: 		 	/media/<Your network share>/<Your backup directory>
-Share backup exit code:		0
-backupDir was: 				/media/<Your backup drive>/<Your backup directory>
-The backup to /media/<Your network share>/<Your backup directory> was successful and completed without error
+2016/12/26 16:31:48 [5159] cd+++++++++ .local/share/webkitgtk/
+2016/12/26 16:31:48 [5159] cd+++++++++ .local/share/webkitgtk/databases/
+2016/12/26 16:31:48 [5159] cd+++++++++ .local/share/webkitgtk/databases/indexeddb/
+2016/12/26 16:31:48 [5159] cd+++++++++ .local/share/webkitgtk/localstorage/
+2016/12/26 16:31:48 [5159] >f+++++++++ .local/share/webkitgtk/localstorage/StorageTracker.db
+2016/12/26 16:31:48 [5159] >f+++++++++ .local/share/webkitgtk/localstorage/https_www.youtube.com_0.localstorage
+2016/12/26 16:31:48 [5159] cd+++++++++ .local/share/yakuake/
+2016/12/26 16:31:48 [5159] >f+++++++++ .local/share/yakuake/Profile 1.profile
+2016/12/26 16:31:48 [5159] >f+++++++++ .local/share/yakuake/Profile 2.profile
+2016/12/26 16:31:48 [5159] >f+++++++++ .local/share/yakuake/Profile 3.profile
+2016/12/26 16:31:48 [5159] >f+++++++++ .local/share/yakuake/Profile 4.profile
+2016/12/26 16:31:48 [5159] sent 8138724 bytes  received 6871 bytes  total size 21601880
+Backup completed at:            Mon Dec 26 16:31:48 CST 2016
+mountChoice was:                1
+backupDrive was:                /dev/sdb1
+Drive backup exit code:         0
+backupShare was:                NA
+Share backup exit code:         NA
+backupDir was:                  /media/data/important_files/
+Note: Backing up to only local hard disk since mountChoice is 1
 The backup to /dev/sdb1 mounted at /media/data was successful and completed without error
 
 ```
