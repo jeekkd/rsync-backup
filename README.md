@@ -2,7 +2,7 @@ Purpose
 ===
 
 A rsync backup script to be ran scheduled by cron. It supports logging, desktop notifications, and
-backups up to both a network share and locally attached storage which can be set in a variety of combinations.
+backups up to both a network share or locally attached storage which can be set in a variety of combinations.
 
 Required packages
 ===

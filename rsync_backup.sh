@@ -10,48 +10,57 @@
 # work in this scenario.
 #
 ######### VARIABLES #########
-# Specify backup directory on the network share. Ex: /media/nfs_backup/fileBackups
-backupShare=
-
-# Mount path of the drive to backup to. Ex. /mnt/backups
+# Mount path of the local backup drive backup to. Example: /mnt/backups
 defaultMount=
-
-# Specify backup drive Ex: /dev/sdb3
+#
+# Specify directory of backup location on the network share. Example: /media/nfs-share/file-backups
+# and the files and directories you enter down below will be synced there.
+backupShare=
+#
+# Backup directory on the backup drive and/or network share. Example: "$defaultMount"/file-backups
+# Its suggested to follow the example and use the "$defaultMount" variable, and to just add your backup
+# directorys name and path afterward like shown. 
+backupDir="$defaultMount"/
+#
+# Specify the backup drive. Example: /dev/sdb3
 # This will be used for mounting the specified drive if is not already mounted at the above directory
 backupDrive=
-
-# Backup directory on the backup drive. Ex "$defaultMount"/important_files
-# Its suggested to follow the example and use the "$defaultMount" variable, and to just add your backup
-# directorys name and path afterward like shown
-backupDir="$defaultMount"/
-
+#
 # Rsync to backup drive, network share, or both?
 # Enter 1 for backup drive, 2 for just network share, or 3 to use both. Entering anything else will
 # result in an error and the script exiting.
 mountChoice=
-
+#
 # Enter the source files and directories you wish to sync, remember if its a directory put a slash (/) at 
-# the end. Seperate each entry with a space and then double quote each entry. 
+# the end. Seperate each entry with a space and assure to double quote each set as shown in the example
+# below. 
 #
 # Example:
 # sourceArray=("/home/<user name>/Important_files/" "/home/<user name>/scripts/" "/home/<user name>/School_work/")
+#
 sourceArray=("")
-
+#
 # Enter the destination directory for the corressponding entry to the source array. So for the first entry 
 # that will be the destination where the first entry of sourceArray will be stored to. The same spacing and 
 # double quoting mentioned above still applies.
+#
 # Example:
 # destinationArray=("/" "/MyScripts/" "/School_work")
+#
 # This would mean that the first entry should be copied into the root of backupDir and/or backupShare. The
-# second entry will go to a folder in the root of the destination called MyScripts.
+# second entry will go to a folder in the root of the destination called MyScripts, and then a similar
+# situation with School_work.
+#
+#
 destinationArray=("")
-
+#
 # Enable notifications via libnotify? Y/N
-notificationsEnabled=
-
-# Enter the username of the user to send notifications to
+notificationsEnabled=N
+#
+# Enter the username of the user to send notifications to. Note that the user will be need to be logged in
+# to receive and see the desktop notification.
 notificationsTo=
-
+#
 #############################
 
 todayDate=$(date)
@@ -92,7 +101,7 @@ rsyncFunction() {
 	adjustedLength=$(( sourceArrayLength - 1 ))
 
 	for i in $( eval echo {0..$adjustedLength} ); do
-		rsync --log-file=/var/log/rsync_backup.log -urqz --delete $(printf '%q\n' "${sourceArray[$i]}") $(printf '%q\n' "$backupDir""${destinationArray[$i]}")
+		rsync --log-file=/var/log/rsync_backup.log -urzq --delete $(printf '%q\n' "${sourceArray[$i]}") $(printf '%q\n' "$backupDir""${destinationArray[$i]}")
 	done
 }
 
