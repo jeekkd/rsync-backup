@@ -31,14 +31,14 @@ backupDrive=
 # result in an error and the script exiting.
 mountChoice=
 #
-# Enter the source files and directories you wish to sync, remember if its a directory put a slash (/) at 
-# the end. Seperate each entry with a space and assure to double quote each set as shown in the example
-# below. 
+# Enter the source files and directories you wish to sync. If its a directory, and you want to backup the
+# contents of the directory, but not copy the directory itself, put a slash (/) at the end. Seperate each 
+# entry with a space and assure to double quote each set as shown in the example below. 
 #
 # Example:
 # sourceArray=("/home/<user name>/Important_files/" "/home/<user name>/scripts/" "/home/<user name>/School_work/")
 #
-sourceArray=("")
+sourceArray=()
 #
 # Enter the destination directory for the corressponding entry to the source array. So for the first entry 
 # that will be the destination where the first entry of sourceArray will be stored to. The same spacing and 
@@ -52,46 +52,9 @@ sourceArray=("")
 # situation with School_work.
 #
 #
-destinationArray=("")
-#
-# Enable notifications via libnotify? Y/N
-notificationsEnabled=N
-#
-# Enter the username of the user to send notifications to. Note that the user will be need to be logged in
-# to receive and see the desktop notification.
-notificationsTo=
+destinationArray=()
 #
 #############################
-
-todayDate=$(date)
-
-# notifyStart()
-# Backups starting notification function
-# When used it will only preform its function if notificationsEnabled is set to Y
-notifyStart() {
-	if [[ $notificationsEnabled == "Y" || $notificationsEnabled == "y" ]]; then
-		sudo -u "$notificationsTo" notify-send "rsync-backup" "Your backup has started"
-	fi
-}
-
-# notifyEnd()
-# Backups starting notification function
-# When used it will only preform its function if notificationsEnabled is set to Y
-notifyEnd() {
-	if [[ $notificationsEnabled == "Y" || $notificationsEnabled == "y" ]]; then		
-		
-		if [[ $mountChoice == "1" && $exitCodeDisk == "0" ]]; then
-			sudo -u "$notificationsTo" notify-send "rsync-backup" "Your backup to a local disk has successfully completed."
-		elif [[ $mountChoice == "2" && $exitCodeShare == "0" ]]; then
-			sudo -u "$notificationsTo" notify-send "rsync-backup" "Your backup to a network share has successfully completed."
-		elif [[ $mountChoice == "3"  && $exitCodeShare == "0" && $exitCodeDisk == "0" ]]; then
-			sudo -u "$notificationsTo" notify-send "rsync-backup" "Your backup to a local disk and network share has successfully completed."
-		else
-			sudo -u "$notificationsTo" notify-send "rsync-backup" "Your backup has had an error occur, please check /var/log/rsync_backup.log"
-		fi
-		
-	fi
-}
 
 # rsyncFunction()
 # Put rsync portion in a function due to being called multiple times through out the 
@@ -160,9 +123,6 @@ if [ $mountChoice -lt 1 ] || [ $mountChoice -gt 3 ] ; then
 	exit 1
 fi
 
-# Notify that backups have began
-notifyStart
-
 if [[ $mountChoice == "1" ]]; then
 	mountpoint -q "$defaultMount" || mount "$backupDrive" "$defaultMount"
 	if [ $? -eq 0 ]; then
@@ -190,6 +150,3 @@ fi
 
 # Append new data to the logfile
 makeLog
-
-# Notify backups have completed
-notifyEnd

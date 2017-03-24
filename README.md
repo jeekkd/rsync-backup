@@ -7,12 +7,9 @@ backups up to both a network share or locally attached storage which can be set 
 Required packages
 ===
 
-Base requirement:
+Base requirements:
 - rsync
-
-If desktop notifications are enabled (optional feature):
-- libnotify
-- sudo
+- Bash
 
 How to use
 ===
